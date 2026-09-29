@@ -98,6 +98,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       ),
       floatingActionButton: hasStudents
           ? FloatingActionButton(
+              heroTag: null,
               onPressed: _openAddForm,
               child: const Icon(Icons.add_rounded),
             )
