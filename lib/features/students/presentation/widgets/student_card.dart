@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../reports/presentation/student_attendance_report_screen.dart';
 import '../../domain/student.dart';
 
 class StudentCard extends StatelessWidget {
@@ -106,13 +107,29 @@ class StudentCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 onSelected: (String value) {
-                  if (value == 'edit') {
+                  if (value == 'attendance') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => StudentAttendanceReportScreen.fromStudent(student: student),
+                      ),
+                    );
+                  } else if (value == 'edit') {
                     onEdit();
                   } else if (value == 'delete') {
                     onDelete();
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'attendance',
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.calendar_month_outlined, size: 18),
+                        SizedBox(width: AppSpacing.sm),
+                        Text('View Attendance'),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem<String>(
                     value: 'edit',
                     child: Row(

@@ -10,6 +10,7 @@ import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/search_field.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../reports/presentation/student_attendance_report_screen.dart';
 import '../domain/attendance_filter.dart';
 import '../domain/attendance_record.dart';
 import '../domain/attendance_status.dart';
@@ -137,7 +138,8 @@ class _AttendanceRecordsScreenState extends ConsumerState<AttendanceRecordsScree
                   onSelected: (_) {
                     final AttendanceStatus? next = switch (filter.status) {
                       null => AttendanceStatus.present,
-                      AttendanceStatus.present => AttendanceStatus.absent,
+                      AttendanceStatus.present => AttendanceStatus.leave,
+                      AttendanceStatus.leave => AttendanceStatus.absent,
                       AttendanceStatus.absent => null,
                     };
                     ref.read(attendanceRecordsFilterProvider.notifier).state =
@@ -211,6 +213,23 @@ class _AttendanceRecordsScreenState extends ConsumerState<AttendanceRecordsScree
                     final AttendanceRecord record = records[index];
                     return Responsive.constrained(
                       child: AppCard(
+                        onTap: () {
+                          DateTime? initialMonth;
+                          try {
+                            initialMonth = AppDateUtils.parseIsoDate(record.date);
+                          } catch (_) {}
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => StudentAttendanceReportScreen(
+                                studentId: record.studentId,
+                                studentName: record.studentName ?? 'Student',
+                                rollNumber: record.studentRollNumber ?? '',
+                                className: record.className ?? '',
+                                initialMonth: initialMonth,
+                              ),
+                            ),
+                          );
+                        },
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md,
                           vertical: AppSpacing.sm,
@@ -239,9 +258,17 @@ class _AttendanceRecordsScreenState extends ConsumerState<AttendanceRecordsScree
                               ),
                             ),
                             StatusChip(
-                              status: record.status == AttendanceStatus.present
-                                  ? AttendanceChipStatus.present
-                                  : AttendanceChipStatus.absent,
+                              status: switch (record.status) {
+                                AttendanceStatus.present => AttendanceChipStatus.present,
+                                AttendanceStatus.leave => AttendanceChipStatus.leave,
+                                AttendanceStatus.absent => AttendanceChipStatus.absent,
+                              },
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),

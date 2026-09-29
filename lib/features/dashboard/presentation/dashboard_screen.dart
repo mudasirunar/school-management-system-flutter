@@ -81,12 +81,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(dashboardDataProvider);
-          await ref.read(dashboardDataProvider.future);
-        },
-        child: dashboardAsync.when(
+      body: dashboardAsync.when(
           loading: () => ListView(
             padding: Responsive.screenPadding(context),
             children: const <Widget>[
@@ -553,9 +548,8 @@ class DashboardScreen extends ConsumerWidget {
             );
           },
         ),
-      ),
-    );
-  }
+      );
+    }
 }
 
 class _QuickActionButton extends StatelessWidget {

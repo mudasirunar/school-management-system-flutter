@@ -76,7 +76,7 @@ class AttendanceStudentTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
-          // Present / Absent Segmented Toggle
+          // Present / Leave / Absent Segmented Toggle
           Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -88,7 +88,16 @@ class AttendanceStudentTile extends StatelessWidget {
                 selectedForeground: colors.success,
                 onTap: () => onStatusChanged(AttendanceStatus.present),
               ),
-              const SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xxs),
+              // Leave Button
+              _StatusToggleButton(
+                label: 'L',
+                isSelected: currentStatus == AttendanceStatus.leave,
+                selectedBackground: colors.warningContainer,
+                selectedForeground: colors.warning,
+                onTap: () => onStatusChanged(AttendanceStatus.leave),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
               // Absent Button
               _StatusToggleButton(
                 label: 'A',

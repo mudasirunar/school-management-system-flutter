@@ -5,6 +5,7 @@ class MonthlyStudentAttendanceItem {
   final String className;
   final int daysPresent;
   final int daysAbsent;
+  final int daysLeave;
   final int totalRecordedDays;
   final double attendancePercentage;
 
@@ -15,6 +16,7 @@ class MonthlyStudentAttendanceItem {
     required this.className,
     required this.daysPresent,
     required this.daysAbsent,
+    this.daysLeave = 0,
     required this.totalRecordedDays,
     required this.attendancePercentage,
   });

@@ -35,6 +35,10 @@ class AttendanceSheetState {
       .where((AttendanceStatus s) => s == AttendanceStatus.present)
       .length;
 
+  int get leaveCount => currentStatuses.values
+      .where((AttendanceStatus s) => s == AttendanceStatus.leave)
+      .length;
+
   int get absentCount => currentStatuses.values
       .where((AttendanceStatus s) => s == AttendanceStatus.absent)
       .length;

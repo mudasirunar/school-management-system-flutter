@@ -1,8 +1,11 @@
 import 'package:sqflite/sqflite.dart';
 import '../../../core/constants/db_constants.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../attendance/domain/attendance_status.dart';
+import '../../students/domain/student.dart';
 import '../domain/daily_report_data.dart';
 import '../domain/monthly_report_data.dart';
+import '../domain/student_attendance_report.dart';
 
 class ReportRepository {
   final Database _db;
@@ -39,6 +42,7 @@ class ReportRepository {
 
     int presentCount = 0;
     int absentCount = 0;
+    int leaveCount = 0;
     final List<DailyStudentAttendanceItem> studentItems = <DailyStudentAttendanceItem>[];
 
     for (final Map<String, dynamic> row in rows) {
@@ -48,6 +52,8 @@ class ReportRepository {
 
       if (status == AttendanceStatus.present) {
         presentCount++;
+      } else if (status == AttendanceStatus.leave) {
+        leaveCount++;
       } else {
         absentCount++;
       }
@@ -64,7 +70,10 @@ class ReportRepository {
     }
 
     final int total = studentItems.length;
-    final double percentage = total > 0 ? (presentCount / total) * 100.0 : 0.0;
+    final int effectiveDays = presentCount + absentCount;
+    final double percentage = effectiveDays > 0
+        ? (presentCount / effectiveDays) * 100.0
+        : (leaveCount > 0 ? 100.0 : 0.0);
 
     final Map<String, List<DailyStudentAttendanceItem>> classGrouped =
         <String, List<DailyStudentAttendanceItem>>{};
@@ -79,14 +88,21 @@ class ReportRepository {
       final int cTotal = entry.value.length;
       final int cPresent =
           entry.value.where((DailyStudentAttendanceItem s) => s.status == AttendanceStatus.present).length;
-      final int cAbsent = cTotal - cPresent;
-      final double cPct = cTotal > 0 ? (cPresent / cTotal) * 100.0 : 0.0;
+      final int cLeave =
+          entry.value.where((DailyStudentAttendanceItem s) => s.status == AttendanceStatus.leave).length;
+      final int cAbsent =
+          entry.value.where((DailyStudentAttendanceItem s) => s.status == AttendanceStatus.absent).length;
+      final int cEffective = cPresent + cAbsent;
+      final double cPct = cEffective > 0
+          ? (cPresent / cEffective) * 100.0
+          : (cLeave > 0 ? 100.0 : 0.0);
       classSummaries.add(
         ClassDailySummaryItem(
           className: entry.key,
           totalStudents: cTotal,
           presentCount: cPresent,
           absentCount: cAbsent,
+          leaveCount: cLeave,
           attendancePercentage: cPct,
         ),
       );
@@ -99,6 +115,7 @@ class ReportRepository {
       totalStudents: total,
       presentCount: presentCount,
       absentCount: absentCount,
+      leaveCount: leaveCount,
       attendancePercentage: percentage,
       students: studentItems,
       classSummaries: classSummaries,
@@ -158,6 +175,7 @@ class ReportRepository {
           SELECT a.${DbConstants.columnAttendanceStudentId},
                  COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusPresent}' THEN 1 END) AS present_count,
                  COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusAbsent}' THEN 1 END) AS absent_count,
+                 COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusLeave}' THEN 1 END) AS leave_count,
                  COUNT(*) AS total_count
           FROM ${DbConstants.tableAttendance} a
           JOIN ${DbConstants.tableStudents} s ON a.${DbConstants.columnAttendanceStudentId} = s.${DbConstants.columnId}
@@ -168,6 +186,7 @@ class ReportRepository {
           SELECT a.${DbConstants.columnAttendanceStudentId},
                  COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusPresent}' THEN 1 END) AS present_count,
                  COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusAbsent}' THEN 1 END) AS absent_count,
+                 COUNT(CASE WHEN a.${DbConstants.columnAttendanceStatus} = '${DbConstants.statusLeave}' THEN 1 END) AS leave_count,
                  COUNT(*) AS total_count
           FROM ${DbConstants.tableAttendance} a
           WHERE a.${DbConstants.columnAttendanceDate} LIKE ?
@@ -186,7 +205,8 @@ class ReportRepository {
     }
 
     int totalPresentAcrossClass = 0;
-    int totalRecordedAcrossClass = 0;
+    int totalAbsentAcrossClass = 0;
+    int totalLeaveAcrossClass = 0;
     final List<MonthlyStudentAttendanceItem> studentSummaries = <MonthlyStudentAttendanceItem>[];
 
     for (final Map<String, dynamic> sRow in studentRows) {
@@ -198,13 +218,17 @@ class ReportRepository {
       final Map<String, dynamic>? agg = aggMap[sId];
       final int presentDays = (agg?['present_count'] as int?) ?? 0;
       final int absentDays = (agg?['absent_count'] as int?) ?? 0;
+      final int leaveDays = (agg?['leave_count'] as int?) ?? 0;
       final int recordedDays = (agg?['total_count'] as int?) ?? 0;
 
       totalPresentAcrossClass += presentDays;
-      totalRecordedAcrossClass += recordedDays;
+      totalAbsentAcrossClass += absentDays;
+      totalLeaveAcrossClass += leaveDays;
 
-      final double studentPct =
-          recordedDays > 0 ? (presentDays / recordedDays) * 100.0 : 0.0;
+      final int effectiveDays = presentDays + absentDays;
+      final double studentPct = effectiveDays > 0
+          ? (presentDays / effectiveDays) * 100.0
+          : (leaveDays > 0 ? 100.0 : 0.0);
 
       studentSummaries.add(
         MonthlyStudentAttendanceItem(
@@ -214,15 +238,17 @@ class ReportRepository {
           className: sClass,
           daysPresent: presentDays,
           daysAbsent: absentDays,
+          daysLeave: leaveDays,
           totalRecordedDays: recordedDays,
           attendancePercentage: studentPct,
         ),
       );
     }
 
-    final double avgClassRate = totalRecordedAcrossClass > 0
-        ? (totalPresentAcrossClass / totalRecordedAcrossClass) * 100.0
-        : 0.0;
+    final int totalEffective = totalPresentAcrossClass + totalAbsentAcrossClass;
+    final double avgClassRate = totalEffective > 0
+        ? (totalPresentAcrossClass / totalEffective) * 100.0
+        : (totalLeaveAcrossClass > 0 ? 100.0 : 0.0);
 
     final List<ClassMonthlySummaryItem> classSummaries = <ClassMonthlySummaryItem>[];
     if (!isSpecificClass) {
@@ -236,14 +262,19 @@ class ReportRepository {
         final String cName = entry.key;
         final List<MonthlyStudentAttendanceItem> cStudents = entry.value;
         int cPresent = 0;
-        int cRecorded = 0;
+        int cAbsent = 0;
+        int cLeave = 0;
         int maxDays = 0;
         for (final MonthlyStudentAttendanceItem s in cStudents) {
           cPresent += s.daysPresent;
-          cRecorded += s.totalRecordedDays;
+          cAbsent += s.daysAbsent;
+          cLeave += s.daysLeave;
           if (s.totalRecordedDays > maxDays) maxDays = s.totalRecordedDays;
         }
-        final double cRate = cRecorded > 0 ? (cPresent / cRecorded) * 100.0 : 0.0;
+        final int cEffective = cPresent + cAbsent;
+        final double cRate = cEffective > 0
+            ? (cPresent / cEffective) * 100.0
+            : (cLeave > 0 ? 100.0 : 0.0);
         classSummaries.add(
           ClassMonthlySummaryItem(
             className: cName,
@@ -265,6 +296,103 @@ class ReportRepository {
       averageAttendanceRate: avgClassRate,
       studentSummaries: studentSummaries,
       classSummaries: classSummaries,
+    );
+  }
+
+  /// Fetches an individual student's monthly attendance report with day-by-day records.
+  Future<StudentMonthAttendanceReport> getStudentMonthlyReport({
+    required int studentId,
+    required int year,
+    required int month,
+  }) async {
+    // 1. Fetch student info
+    final List<Map<String, dynamic>> studentMaps = await _db.query(
+      DbConstants.tableStudents,
+      where: '${DbConstants.columnId} = ?',
+      whereArgs: <dynamic>[studentId],
+    );
+    if (studentMaps.isEmpty) {
+      throw Exception('Student with id $studentId not found');
+    }
+    final Student student = Student.fromMap(studentMaps.first);
+
+    // 2. Fetch recorded attendance for this student in this month
+    final String monthPrefix =
+        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}-%';
+    final List<Map<String, dynamic>> attRows = await _db.query(
+      DbConstants.tableAttendance,
+      where: '${DbConstants.columnAttendanceStudentId} = ? AND ${DbConstants.columnAttendanceDate} LIKE ?',
+      whereArgs: <dynamic>[studentId, monthPrefix],
+    );
+
+    final Map<String, AttendanceStatus> attendanceByDate = <String, AttendanceStatus>{};
+    for (final Map<String, dynamic> row in attRows) {
+      final String dateStr = row[DbConstants.columnAttendanceDate] as String;
+      final String statusStr = row[DbConstants.columnAttendanceStatus] as String;
+      final AttendanceStatus? status = AttendanceStatus.fromValue(statusStr);
+      if (status != null) {
+        attendanceByDate[dateStr] = status;
+      }
+    }
+
+    // 3. Determine how many calendar days to evaluate
+    final DateTime now = DateTime.now();
+    final bool isCurrentMonth = (now.year == year && now.month == month);
+    final int totalDaysInMonth = DateTime(year, month + 1, 0).day;
+
+    final int lastDayToEvaluate;
+    if (isCurrentMonth) {
+      lastDayToEvaluate = now.day;
+    } else if (DateTime(year, month).isBefore(DateTime(now.year, now.month))) {
+      lastDayToEvaluate = totalDaysInMonth;
+    } else {
+      lastDayToEvaluate = 0;
+    }
+
+    int presentCount = 0;
+    int absentCount = 0;
+    int leaveCount = 0;
+    int unmarkedCount = 0;
+    final List<StudentDayAttendanceRecord> dayRecords = <StudentDayAttendanceRecord>[];
+
+    // Build records latest day first (reverse chronological)
+    for (int day = lastDayToEvaluate; day >= 1; day--) {
+      final DateTime date = DateTime(year, month, day);
+      final String iso = AppDateUtils.toIsoDate(date);
+      final AttendanceStatus? status = attendanceByDate[iso];
+
+      if (status == AttendanceStatus.present) {
+        presentCount++;
+      } else if (status == AttendanceStatus.absent) {
+        absentCount++;
+      } else if (status == AttendanceStatus.leave) {
+        leaveCount++;
+      } else {
+        unmarkedCount++;
+      }
+
+      dayRecords.add(StudentDayAttendanceRecord(
+        date: date,
+        status: status,
+      ));
+    }
+
+    final int effectiveDays = presentCount + absentCount;
+    final double attendancePercentage = effectiveDays > 0
+        ? (presentCount / effectiveDays) * 100.0
+        : (leaveCount > 0 ? 100.0 : 0.0);
+
+    return StudentMonthAttendanceReport(
+      student: student,
+      year: year,
+      month: month,
+      presentCount: presentCount,
+      absentCount: absentCount,
+      leaveCount: leaveCount,
+      unmarkedCount: unmarkedCount,
+      totalDaysEvaluated: dayRecords.length,
+      attendancePercentage: attendancePercentage,
+      dayRecords: dayRecords,
     );
   }
 }

@@ -7,6 +7,7 @@ class DashboardData {
   final int todayTotalMarked;
   final int todayPresentCount;
   final int todayAbsentCount;
+  final int todayLeaveCount;
   final double todayAttendanceRate;
   final List<ActivityEntry> recentActivities;
 
@@ -17,6 +18,7 @@ class DashboardData {
     required this.todayTotalMarked,
     required this.todayPresentCount,
     required this.todayAbsentCount,
+    this.todayLeaveCount = 0,
     required this.todayAttendanceRate,
     required this.recentActivities,
   });

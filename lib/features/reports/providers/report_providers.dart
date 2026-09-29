@@ -5,6 +5,7 @@ import '../../../core/utils/date_utils.dart';
 import '../data/report_repository.dart';
 import '../domain/daily_report_data.dart';
 import '../domain/monthly_report_data.dart';
+import '../domain/student_attendance_report.dart';
 
 final Provider<ReportRepository> reportRepositoryProvider = Provider<ReportRepository>((Ref ref) {
   final AsyncValue<Database> dbAsync = ref.watch(databaseProvider);
@@ -45,6 +46,31 @@ final AutoDisposeFutureProvider<DailyClassSummary> dailyReportProvider =
   );
 });
 
+/// Parameter query for fetching a student's monthly attendance report
+class StudentReportQuery {
+  final int studentId;
+  final int year;
+  final int month;
+
+  const StudentReportQuery({
+    required this.studentId,
+    required this.year,
+    required this.month,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StudentReportQuery &&
+          runtimeType == other.runtimeType &&
+          studentId == other.studentId &&
+          year == other.year &&
+          month == other.month;
+
+  @override
+  int get hashCode => Object.hash(studentId, year, month);
+}
+
 /// Monthly report provider that automatically re-evaluates when month or class changes
 final AutoDisposeFutureProvider<MonthlyClassSummary> monthlyReportProvider =
     FutureProvider.autoDispose<MonthlyClassSummary>((Ref ref) async {
@@ -58,3 +84,17 @@ final AutoDisposeFutureProvider<MonthlyClassSummary> monthlyReportProvider =
     className: className,
   );
 });
+
+/// Individual student monthly report provider
+final AutoDisposeFutureProviderFamily<StudentMonthAttendanceReport, StudentReportQuery>
+    studentMonthlyReportProvider =
+    FutureProvider.autoDispose.family<StudentMonthAttendanceReport, StudentReportQuery>(
+  (Ref ref, StudentReportQuery query) async {
+    final ReportRepository repo = ref.watch(reportRepositoryProvider);
+    return repo.getStudentMonthlyReport(
+      studentId: query.studentId,
+      year: query.year,
+      month: query.month,
+    );
+  },
+);

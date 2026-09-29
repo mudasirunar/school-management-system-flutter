@@ -51,4 +51,5 @@ class DbConstants {
   // Attendance Statuses
   static const String statusPresent = 'present';
   static const String statusAbsent = 'absent';
+  static const String statusLeave = 'leave';
 }

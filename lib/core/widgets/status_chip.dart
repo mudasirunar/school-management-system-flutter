@@ -5,6 +5,7 @@ import '../theme/app_theme_extension.dart';
 enum AttendanceChipStatus {
   present,
   absent,
+  leave,
   unmarked,
 }
 
@@ -24,6 +25,8 @@ class StatusChip extends StatelessWidget {
         return StatusChip(status: AttendanceChipStatus.present, compact: compact);
       case 'absent':
         return StatusChip(status: AttendanceChipStatus.absent, compact: compact);
+      case 'leave':
+        return StatusChip(status: AttendanceChipStatus.leave, compact: compact);
       default:
         return StatusChip(status: AttendanceChipStatus.unmarked, compact: compact);
     }
@@ -46,9 +49,15 @@ class StatusChip extends StatelessWidget {
           Icons.cancel_outlined,
           'Absent'
         ),
-      AttendanceChipStatus.unmarked => (
+      AttendanceChipStatus.leave => (
           colors.warningContainer,
           colors.warning,
+          Icons.event_busy_outlined,
+          'Leave'
+        ),
+      AttendanceChipStatus.unmarked => (
+          Theme.of(context).colorScheme.surfaceContainerHighest,
+          Theme.of(context).colorScheme.onSurfaceVariant,
           Icons.help_outline_rounded,
           'Not Marked'
         ),

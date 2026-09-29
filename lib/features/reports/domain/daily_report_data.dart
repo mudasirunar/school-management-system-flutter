@@ -21,6 +21,7 @@ class ClassDailySummaryItem {
   final int totalStudents;
   final int presentCount;
   final int absentCount;
+  final int leaveCount;
   final double attendancePercentage;
 
   const ClassDailySummaryItem({
@@ -28,6 +29,7 @@ class ClassDailySummaryItem {
     required this.totalStudents,
     required this.presentCount,
     required this.absentCount,
+    this.leaveCount = 0,
     required this.attendancePercentage,
   });
 }
@@ -38,6 +40,7 @@ class DailyClassSummary {
   final int totalStudents;
   final int presentCount;
   final int absentCount;
+  final int leaveCount;
   final double attendancePercentage;
   final List<DailyStudentAttendanceItem> students;
   final List<ClassDailySummaryItem> classSummaries;
@@ -48,6 +51,7 @@ class DailyClassSummary {
     required this.totalStudents,
     required this.presentCount,
     required this.absentCount,
+    this.leaveCount = 0,
     required this.attendancePercentage,
     required this.students,
     this.classSummaries = const <ClassDailySummaryItem>[],

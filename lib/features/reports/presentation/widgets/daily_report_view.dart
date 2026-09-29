@@ -13,6 +13,7 @@ import '../../../../core/widgets/status_chip.dart';
 import '../../../attendance/domain/attendance_status.dart';
 import '../../domain/daily_report_data.dart';
 import '../../providers/report_providers.dart';
+import '../student_attendance_report_screen.dart';
 import 'attendance_percentage_ring.dart';
 
 class DailyReportView extends ConsumerWidget {
@@ -451,6 +452,23 @@ class DailyReportView extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                           child: AppCard(
+                            onTap: () {
+                              DateTime? initialMonth;
+                              try {
+                                initialMonth = AppDateUtils.parseIsoDate(summary.date);
+                              } catch (_) {}
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => StudentAttendanceReportScreen(
+                                    studentId: item.studentId,
+                                    studentName: item.studentName,
+                                    rollNumber: item.rollNumber,
+                                    className: item.className,
+                                    initialMonth: initialMonth,
+                                  ),
+                                ),
+                              );
+                            },
                             padding: const EdgeInsets.symmetric(
                               horizontal: AppSpacing.md,
                               vertical: AppSpacing.sm,
@@ -479,9 +497,17 @@ class DailyReportView extends ConsumerWidget {
                                   ),
                                 ),
                                 StatusChip(
-                                  status: item.status == AttendanceStatus.present
-                                      ? AttendanceChipStatus.present
-                                      : AttendanceChipStatus.absent,
+                                  status: switch (item.status) {
+                                    AttendanceStatus.present => AttendanceChipStatus.present,
+                                    AttendanceStatus.leave => AttendanceChipStatus.leave,
+                                    AttendanceStatus.absent => AttendanceChipStatus.absent,
+                                  },
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ],
                             ),

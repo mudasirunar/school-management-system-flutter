@@ -32,7 +32,8 @@ class DashboardRepository {
       '''
       SELECT COUNT(*) as total,
              COUNT(CASE WHEN ${DbConstants.columnAttendanceStatus} = '${DbConstants.statusPresent}' THEN 1 END) as present,
-             COUNT(CASE WHEN ${DbConstants.columnAttendanceStatus} = '${DbConstants.statusAbsent}' THEN 1 END) as absent
+             COUNT(CASE WHEN ${DbConstants.columnAttendanceStatus} = '${DbConstants.statusAbsent}' THEN 1 END) as absent,
+             COUNT(CASE WHEN ${DbConstants.columnAttendanceStatus} = '${DbConstants.statusLeave}' THEN 1 END) as leave
       FROM ${DbConstants.tableAttendance}
       WHERE ${DbConstants.columnAttendanceDate} = ?
       ''',
@@ -42,16 +43,20 @@ class DashboardRepository {
     int totalMarked = 0;
     int presentCount = 0;
     int absentCount = 0;
+    int leaveCount = 0;
 
     if (attendanceRows.isNotEmpty) {
       final Map<String, dynamic> row = attendanceRows.first;
       totalMarked = (row['total'] as int?) ?? 0;
       presentCount = (row['present'] as int?) ?? 0;
       absentCount = (row['absent'] as int?) ?? 0;
+      leaveCount = (row['leave'] as int?) ?? 0;
     }
 
-    final double attendanceRate =
-        totalMarked > 0 ? (presentCount / totalMarked) * 100.0 : 0.0;
+    final int effectiveDays = presentCount + absentCount;
+    final double attendanceRate = effectiveDays > 0
+        ? (presentCount / effectiveDays) * 100.0
+        : (leaveCount > 0 ? 100.0 : 0.0);
 
     // 4. Recent activities
     final List<ActivityEntry> activities = await _activityRepo.getRecent(limit: 10);
@@ -63,6 +68,7 @@ class DashboardRepository {
       todayTotalMarked: totalMarked,
       todayPresentCount: presentCount,
       todayAbsentCount: absentCount,
+      todayLeaveCount: leaveCount,
       todayAttendanceRate: attendanceRate,
       recentActivities: activities,
     );

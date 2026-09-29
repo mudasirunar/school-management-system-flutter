@@ -233,6 +233,7 @@ class AttendanceScreen extends ConsumerWidget {
                                     AttendanceSummaryStrip(
                                       presentCount: state.presentCount,
                                       absentCount: state.absentCount,
+                                      leaveCount: state.leaveCount,
                                       unmarkedCount: state.unmarkedCount,
                                       totalStudents: state.students.length,
                                       isSavedRecord: state.hasSavedRecord,

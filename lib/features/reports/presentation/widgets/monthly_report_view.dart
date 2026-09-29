@@ -11,6 +11,7 @@ import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../domain/monthly_report_data.dart';
 import '../../providers/report_providers.dart';
+import '../student_attendance_report_screen.dart';
 import 'attendance_percentage_ring.dart';
 
 class MonthlyReportView extends ConsumerWidget {
@@ -456,6 +457,19 @@ class MonthlyReportView extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                           child: AppCard(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => StudentAttendanceReportScreen(
+                                    studentId: item.studentId,
+                                    studentName: item.studentName,
+                                    rollNumber: item.rollNumber,
+                                    className: item.className,
+                                    initialMonth: selectedMonth,
+                                  ),
+                                ),
+                              );
+                            },
                             padding: const EdgeInsets.all(AppSpacing.md),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
