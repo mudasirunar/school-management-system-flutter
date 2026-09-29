@@ -38,6 +38,9 @@ class _SearchFieldState extends State<SearchField> {
 
   void _updateState() {
     final bool hasText = _controller.text.isNotEmpty;
+    if (!hasText) {
+      _debouncer.cancel();
+    }
     if (hasText != _hasText) {
       setState(() {
         _hasText = hasText;
@@ -56,13 +59,22 @@ class _SearchFieldState extends State<SearchField> {
   }
 
   void _onTextChanged(String value) {
+    if (value.isEmpty) {
+      _debouncer.cancel();
+      widget.onChanged?.call('');
+      return;
+    }
     _debouncer.run(() {
       widget.onChanged?.call(value);
     });
   }
 
   void _clear() {
+    _debouncer.cancel();
     _controller.clear();
+    setState(() {
+      _hasText = false;
+    });
     widget.onClear?.call();
     widget.onChanged?.call('');
   }
