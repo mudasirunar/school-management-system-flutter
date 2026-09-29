@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/teacher_repository.dart';
 import '../domain/teacher.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
 
 final StateProvider<String> teacherSearchProvider = StateProvider<String>((Ref ref) => '');
 
@@ -17,6 +18,7 @@ class TeacherListNotifier extends AsyncNotifier<List<Teacher>> {
   Future<void> addTeacher(Teacher teacher) async {
     final TeacherRepository repo = ref.read(teacherRepositoryProvider);
     await repo.insert(teacher);
+    ref.invalidate(dashboardDataProvider);
     ref.invalidateSelf();
     await future;
   }
@@ -24,6 +26,7 @@ class TeacherListNotifier extends AsyncNotifier<List<Teacher>> {
   Future<void> updateTeacher(Teacher teacher) async {
     final TeacherRepository repo = ref.read(teacherRepositoryProvider);
     await repo.update(teacher);
+    ref.invalidate(dashboardDataProvider);
     ref.invalidateSelf();
     await future;
   }
@@ -31,6 +34,7 @@ class TeacherListNotifier extends AsyncNotifier<List<Teacher>> {
   Future<void> deleteTeacher(int id, {String? teacherName}) async {
     final TeacherRepository repo = ref.read(teacherRepositoryProvider);
     await repo.delete(id, teacherName: teacherName);
+    ref.invalidate(dashboardDataProvider);
     ref.invalidateSelf();
     await future;
   }

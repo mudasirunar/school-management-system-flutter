@@ -8,6 +8,7 @@ import '../domain/attendance_filter.dart';
 import '../domain/attendance_record.dart';
 import '../domain/attendance_status.dart';
 import '../../reports/providers/report_providers.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
 
 final StateProvider<DateTime> selectedAttendanceDateProvider =
     StateProvider<DateTime>((Ref ref) => DateTime.now());
@@ -148,6 +149,7 @@ class AttendanceSheetNotifier extends AutoDisposeAsyncNotifier<AttendanceSheetSt
       ref.invalidate(attendanceRecordsProvider);
       ref.invalidate(dailyReportProvider);
       ref.invalidate(monthlyReportProvider);
+      ref.invalidate(dashboardDataProvider);
 
       state = AsyncData<AttendanceSheetState?>(
         current.copyWith(

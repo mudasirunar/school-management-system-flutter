@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/responsive.dart';
 import '../attendance/presentation/attendance_screen.dart';
 import '../dashboard/presentation/dashboard_screen.dart';
 import '../reports/presentation/reports_screen.dart';
 import '../students/presentation/students_screen.dart';
 import '../teachers/presentation/teachers_screen.dart';
+import 'navigation_provider.dart';
 
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
-
-  @override
-  State<HomeShell> createState() => _HomeShellState();
-}
-
-class _HomeShellState extends State<HomeShell> {
-  int _currentIndex = 0;
 
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
@@ -24,26 +19,25 @@ class _HomeShellState extends State<HomeShell> {
     ReportsScreen(),
   ];
 
-  void _onDestinationSelected(int index) {
-    if (_currentIndex == index) return;
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int currentIndex = ref.watch(navigationIndexProvider);
     final bool isPhone = Responsive.isPhone(context);
+
+    void onDestinationSelected(int index) {
+      if (currentIndex == index) return;
+      ref.read(navigationIndexProvider.notifier).state = index;
+    }
 
     if (isPhone) {
       return Scaffold(
         body: IndexedStack(
-          index: _currentIndex,
+          index: currentIndex,
           children: _screens,
         ),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onDestinationSelected,
+          selectedIndex: currentIndex,
+          onDestinationSelected: onDestinationSelected,
           destinations: const <NavigationDestination>[
             NavigationDestination(
               icon: Icon(Icons.dashboard_outlined),
@@ -80,8 +74,8 @@ class _HomeShellState extends State<HomeShell> {
       body: Row(
         children: <Widget>[
           NavigationRail(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: _onDestinationSelected,
+            selectedIndex: currentIndex,
+            onDestinationSelected: onDestinationSelected,
             labelType: NavigationRailLabelType.all,
             leading: const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -118,7 +112,7 @@ class _HomeShellState extends State<HomeShell> {
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
             child: IndexedStack(
-              index: _currentIndex,
+              index: currentIndex,
               children: _screens,
             ),
           ),
