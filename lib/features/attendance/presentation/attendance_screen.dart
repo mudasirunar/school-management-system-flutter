@@ -310,12 +310,12 @@ class AttendanceScreen extends ConsumerWidget {
                                 maxWidth: 600,
                                 child: ElevatedButton.icon(
                                   icon: state.isSaving
-                                      ? const SizedBox(
+                                      ? SizedBox(
                                           width: 18,
                                           height: 18,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                                           ),
                                         )
                                       : const Icon(Icons.save_rounded, size: 20),

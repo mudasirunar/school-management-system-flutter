@@ -312,12 +312,12 @@ class _StudentFormScreenState extends ConsumerState<StudentFormScreen> {
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submit,
                     child: _isSubmitting
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                             ),
                           )
                         : Text(widget.isEditing ? 'Update Student' : 'Save Student'),

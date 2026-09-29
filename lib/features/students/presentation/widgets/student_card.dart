@@ -123,13 +123,13 @@ class StudentCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                        SizedBox(width: AppSpacing.sm),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
+                        Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
                       ],
                     ),
                   ),
