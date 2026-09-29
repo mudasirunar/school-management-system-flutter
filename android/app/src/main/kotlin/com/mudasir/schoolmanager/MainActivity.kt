@@ -1,4 +1,4 @@
-package com.mudasir.school_management_system
+package com.mudasir.schoolmanager
 
 import io.flutter.embedding.android.FlutterActivity
 

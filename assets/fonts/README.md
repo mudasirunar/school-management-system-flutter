@@ -1,0 +1,5 @@
+# Place Inter font files here:
+# - Inter-Regular.ttf
+# - Inter-Medium.ttf
+# - Inter-SemiBold.ttf
+# - Inter-Bold.ttf
